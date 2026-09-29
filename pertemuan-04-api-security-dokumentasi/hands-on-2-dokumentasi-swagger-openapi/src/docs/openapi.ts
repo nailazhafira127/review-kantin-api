@@ -6,6 +6,15 @@ import {
   stallQuerySchema,
   updateStallSchema,
 } from '../schemas/stallSchema.ts';
+import { createUserSchema } from '../schemas/userSchema.ts';
+import {
+  createAuditLogSchema,
+  createLikeSchema,
+  createMenuItemSchema,
+  createReviewSchema,
+  flagStatusSchema,
+  updateMenuItemSchema,
+} from '../schemas/resourceSchema.ts';
 
 const registry = new OpenAPIRegistry();
 
@@ -56,6 +65,16 @@ const errorSchema = registry.register(
 // Nilai kembalian `register` dipakai sebagai referensi ($ref) di requestBody.
 const stallInput = registry.register('StallInput', createStallSchema);
 const stallUpdate = registry.register('StallUpdate', updateStallSchema);
+const userInput = registry.register('UserInput', createUserSchema);
+const menuItemInput = registry.register('MenuItemInput', createMenuItemSchema);
+const menuItemUpdate = registry.register('MenuItemUpdate', updateMenuItemSchema);
+const reviewInput = registry.register('ReviewInput', createReviewSchema);
+const likeInput = registry.register('LikeInput', createLikeSchema);
+const flagStatusInput = registry.register('FlagStatusInput', flagStatusSchema);
+const auditLogInput = registry.register('AuditLogInput', createAuditLogSchema);
+
+const dataListResponse = z.object({ status: z.literal('success'), data: z.array(z.unknown()) });
+const dataResponse = z.object({ status: z.literal('success'), data: z.unknown() });
 
 const stallListResponse = registry.register(
   'StallListResponse',
@@ -234,6 +253,87 @@ registry.registerPath({
       content: { 'application/json': { schema: errorSchema } },
     },
   },
+});
+
+registry.registerPath({
+  method: 'get', path: '/api/v1/users', tags: ['USERS'], summary: 'Daftar pengguna',
+  responses: { 200: { description: 'Daftar pengguna', content: { 'application/json': { schema: dataListResponse } } } },
+});
+registry.registerPath({
+  method: 'post', path: '/api/v1/users', tags: ['USERS'], summary: 'Tambah pengguna',
+  request: { body: { content: { 'application/json': { schema: userInput } } } },
+  responses: { 201: { description: 'Pengguna berhasil dibuat', content: { 'application/json': { schema: dataResponse } } }, 400: { description: 'Body tidak valid', content: { 'application/json': { schema: errorSchema } } } },
+});
+
+registry.registerPath({
+  method: 'get', path: '/api/v1/menu-items', tags: ['MENU_ITEMS'], summary: 'Daftar menu (join stall)',
+  responses: { 200: { description: 'Daftar menu dengan nama warung', content: { 'application/json': { schema: dataListResponse } } } },
+});
+registry.registerPath({
+  method: 'post', path: '/api/v1/menu-items', tags: ['MENU_ITEMS'], summary: 'Tambah menu',
+  request: { body: { content: { 'application/json': { schema: menuItemInput } } } },
+  responses: { 201: { description: 'Menu berhasil dibuat', content: { 'application/json': { schema: dataResponse } } }, 400: { description: 'Body tidak valid', content: { 'application/json': { schema: errorSchema } } } },
+});
+registry.registerPath({
+  method: 'get', path: '/api/v1/menu-items/{id}', tags: ['MENU_ITEMS'], summary: 'Detail menu',
+  request: { params: idParamSchema },
+  responses: { 200: { description: 'Detail menu dengan nama warung', content: { 'application/json': { schema: dataResponse } } }, 404: { description: 'Menu tidak ditemukan', content: { 'application/json': { schema: errorSchema } } } },
+});
+registry.registerPath({
+  method: 'put', path: '/api/v1/menu-items/{id}', tags: ['MENU_ITEMS'], summary: 'Ubah menu',
+  request: { params: idParamSchema, body: { content: { 'application/json': { schema: menuItemUpdate } } } },
+  responses: { 200: { description: 'Menu diperbarui', content: { 'application/json': { schema: dataResponse } } }, 400: { description: 'Input tidak valid', content: { 'application/json': { schema: errorSchema } } }, 404: { description: 'Menu tidak ditemukan', content: { 'application/json': { schema: errorSchema } } } },
+});
+registry.registerPath({
+  method: 'delete', path: '/api/v1/menu-items/{id}', tags: ['MENU_ITEMS'], summary: 'Hapus menu',
+  request: { params: idParamSchema },
+  responses: { 200: { description: 'Menu dihapus', content: { 'application/json': { schema: dataResponse } } }, 404: { description: 'Menu tidak ditemukan', content: { 'application/json': { schema: errorSchema } } } },
+});
+
+registry.registerPath({
+  method: 'get', path: '/api/v1/reviews', tags: ['REVIEWS'], summary: 'Daftar review (join user)',
+  responses: { 200: { description: 'Daftar review dengan nama pengguna', content: { 'application/json': { schema: dataListResponse } } } },
+});
+registry.registerPath({
+  method: 'post', path: '/api/v1/reviews', tags: ['REVIEWS'], summary: 'Tambah review',
+  request: { body: { content: { 'application/json': { schema: reviewInput } } } },
+  responses: { 201: { description: 'Review berhasil dibuat', content: { 'application/json': { schema: dataResponse } } }, 400: { description: 'Body tidak valid', content: { 'application/json': { schema: errorSchema } } } },
+});
+registry.registerPath({
+  method: 'delete', path: '/api/v1/reviews/{id}', tags: ['REVIEWS'], summary: 'Hapus review',
+  request: { params: idParamSchema },
+  responses: { 200: { description: 'Review dihapus', content: { 'application/json': { schema: dataResponse } } }, 404: { description: 'Review tidak ditemukan', content: { 'application/json': { schema: errorSchema } } } },
+});
+
+registry.registerPath({
+  method: 'post', path: '/api/v1/likes', tags: ['LIKES'], summary: 'Beri like pada review',
+  request: { body: { content: { 'application/json': { schema: likeInput } } } },
+  responses: { 201: { description: 'Like berhasil dibuat', content: { 'application/json': { schema: dataResponse } } }, 400: { description: 'Body tidak valid', content: { 'application/json': { schema: errorSchema } } } },
+});
+registry.registerPath({
+  method: 'delete', path: '/api/v1/likes/{id}', tags: ['LIKES'], summary: 'Hapus like',
+  request: { params: idParamSchema },
+  responses: { 200: { description: 'Like dihapus', content: { 'application/json': { schema: dataResponse } } }, 404: { description: 'Like tidak ditemukan', content: { 'application/json': { schema: errorSchema } } } },
+});
+
+registry.registerPath({
+  method: 'get', path: '/api/v1/flags', tags: ['FLAGS'], summary: 'Daftar laporan review',
+  responses: { 200: { description: 'Daftar flags', content: { 'application/json': { schema: dataListResponse } } } },
+});
+registry.registerPath({
+  method: 'put', path: '/api/v1/flags/{id}', tags: ['FLAGS'], summary: 'Perbarui status laporan',
+  request: { params: idParamSchema, body: { content: { 'application/json': { schema: flagStatusInput } } } },
+  responses: { 200: { description: 'Status laporan diperbarui', content: { 'application/json': { schema: dataResponse } } }, 400: { description: 'Input tidak valid', content: { 'application/json': { schema: errorSchema } } }, 404: { description: 'Flag tidak ditemukan', content: { 'application/json': { schema: errorSchema } } } },
+});
+
+registry.registerPath({
+  method: 'get', path: '/api/v1/audit-logs', tags: ['AUDIT_LOGS'], summary: 'Daftar audit log',
+  responses: { 200: { description: 'Daftar audit log', content: { 'application/json': { schema: dataListResponse } } } },
+});
+registry.registerPath({
+  method: 'post', path: '/api/v1/audit-logs', tags: ['AUDIT_LOGS'], summary: 'Catat aktivitas audit',
+  request: { body: { content: { 'application/json': { schema: auditLogInput } } } },
+  responses: { 201: { description: 'Audit log berhasil dibuat', content: { 'application/json': { schema: dataResponse } } }, 400: { description: 'Body tidak valid', content: { 'application/json': { schema: errorSchema } } } },
 });
 
 // ----------------------------------------------------------------- generate

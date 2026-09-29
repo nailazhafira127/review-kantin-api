@@ -109,6 +109,102 @@ BEGIN
 END
 GO
 
+-- ============================================================== MENU_ITEMS
+IF NOT EXISTS (SELECT 1 FROM dbo.MENU_ITEMS)
+BEGIN
+    SET IDENTITY_INSERT dbo.MENU_ITEMS ON;
+    INSERT INTO dbo.MENU_ITEMS (id, stall_id, name, price, is_available) VALUES
+        (1,  1, N'Kwetiau Goreng Spesial', 15000, 1),
+        (2,  1, N'Kwetiau Kuah',           13000, 1),
+        (3,  2, N'Nasi Goreng Spesial',    14000, 1),
+        (4,  2, N'Nasi Goreng Telur',      12000, 1),
+        (5,  3, N'Bakso Urat Jumbo',       18000, 1),
+        (6,  3, N'Bakso Beranak',          25000, 1),
+        (7,  4, N'Mie Ayam Original',      12000, 1),
+        (8,  4, N'Mie Ayam Pangsit',       15000, 1),
+        (9,  5, N'Es Teh Manis',            4000, 1),
+        (10, 5, N'Es Teh Jumbo',            6000, 1),
+        (11, 6, N'Jus Alpukat',            12000, 1),
+        (12, 6, N'Jus Mangga',             10000, 1),
+        (13, 7, N'Chicken Steak Hot Plate',25000, 1),
+        (14, 7, N'Chicken Katsu',          22000, 1),
+        (15, 8, N'Sate Ayam 10 Tusuk',     20000, 1),
+        (16, 8, N'Sate Kambing 10 Tusuk',  30000, 1),
+        (17, 9, N'Soto Ayam',              13000, 1),
+        (18, 9, N'Soto Ayam + Nasi',       16000, 1),
+        (19, 10, N'Nasi Uduk Komplit',     15000, 1),
+        (20, 10, N'Nasi Uduk Ayam',        17000, 1);
+    SET IDENTITY_INSERT dbo.MENU_ITEMS OFF;
+    DBCC CHECKIDENT ('dbo.MENU_ITEMS', RESEED, 20) WITH NO_INFOMSGS;
+    PRINT 'Seed MENU_ITEMS selesai.';
+END
+GO
+
+-- ==================================================================== LIKES
+IF NOT EXISTS (SELECT 1 FROM dbo.LIKES)
+BEGIN
+    SET IDENTITY_INSERT dbo.LIKES ON;
+    INSERT INTO dbo.LIKES (id, review_id, user_id) VALUES
+        (1,  1,  13),
+        (2,  1,  14),
+        (3,  2,  12),
+        (4,  4,  13),
+        (5,  4,  14),
+        (6,  4,  15),
+        (7,  5,  12),
+        (8,  6,  13),
+        (9,  8,  12),
+        (10, 8,  15),
+        (11, 9,  14),
+        (12, 10, 12),
+        (13, 11, 13),
+        (14, 11, 14),
+        (15, 14, 13),
+        (16, 16, 12);
+    SET IDENTITY_INSERT dbo.LIKES OFF;
+    DBCC CHECKIDENT ('dbo.LIKES', RESEED, 16) WITH NO_INFOMSGS;
+    PRINT 'Seed LIKES selesai.';
+END
+GO
+
+-- ==================================================================== FLAGS
+IF NOT EXISTS (SELECT 1 FROM dbo.FLAGS)
+BEGIN
+    SET IDENTITY_INSERT dbo.FLAGS ON;
+    INSERT INTO dbo.FLAGS (id, review_id, reported_by, reason, status) VALUES
+        (1,  2,  9,  N'Komentar tidak relevan',         N'pending'),
+        (2,  3,  4,  N'Review palsu / spam',             N'resolved'),
+        (3,  7,  5,  N'Bahasa tidak pantas',              N'dismissed'),
+        (4,  9,  14, N'Diduga dari akun fake',            N'pending'),
+        (5,  11, 7,  N'Menyerang pribadi pemilik warung', N'resolved'),
+        (6,  13, 8,  N'Isi review tidak sesuai fakta',    N'pending');
+    SET IDENTITY_INSERT dbo.FLAGS OFF;
+    DBCC CHECKIDENT ('dbo.FLAGS', RESEED, 6) WITH NO_INFOMSGS;
+    PRINT 'Seed FLAGS selesai.';
+END
+GO
+
+-- =============================================================== AUDIT_LOGS
+IF NOT EXISTS (SELECT 1 FROM dbo.AUDIT_LOGS)
+BEGIN
+    SET IDENTITY_INSERT dbo.AUDIT_LOGS ON;
+    INSERT INTO dbo.AUDIT_LOGS (id, user_id, action, target_table, target_id, metadata) VALUES
+        (1,  1,  N'CREATE', N'USERS',      2,  N'{"role":"owner"}'),
+        (2,  1,  N'CREATE', N'STALLS',     1,  N'{"name":"Warung Bu Tini"}'),
+        (3,  2,  N'UPDATE', N'STALLS',     1,  N'{"field":"description"}'),
+        (4,  12, N'CREATE', N'REVIEWS',    1,  N'{"rating":5}'),
+        (5,  13, N'CREATE', N'REVIEWS',    2,  N'{"rating":4}'),
+        (6,  13, N'CREATE', N'LIKES',      1,  N'{"review_id":1}'),
+        (7,  1,  N'DELETE', N'MENU_ITEMS', 21, N'{"reason":"duplicate entry"}'),
+        (8,  9,  N'CREATE', N'FLAGS',      1,  N'{"reason":"spam"}'),
+        (9,  1,  N'UPDATE', N'FLAGS',      1,  N'{"status":"resolved"}'),
+        (10, 1,  N'UPDATE', N'USERS',      12, N'{"field":"password_hash"}');
+    SET IDENTITY_INSERT dbo.AUDIT_LOGS OFF;
+    DBCC CHECKIDENT ('dbo.AUDIT_LOGS', RESEED, 10) WITH NO_INFOMSGS;
+    PRINT 'Seed AUDIT_LOGS selesai.';
+END
+GO
+
 PRINT 'Seed selesai.';
 GO
 
@@ -117,3 +213,9 @@ UNION ALL SELECT 'STALLS', COUNT(*) FROM dbo.STALLS
 UNION ALL SELECT 'MENU_ITEMS', COUNT(*) FROM dbo.MENU_ITEMS
 UNION ALL SELECT 'REVIEWS', COUNT(*) FROM dbo.REVIEWS;
 GO
+
+SELECT name FROM sys.tables ORDER BY name;
+
+SELECT * FROM dbo.AUDIT_LOGS;
+
+SELECT name FROM sys.tables WHERE name = 'AUDIT_LOGS';

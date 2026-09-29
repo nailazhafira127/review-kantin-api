@@ -1,24 +1,12 @@
-import swaggerAutogen from 'swagger-autogen';
+import { writeFile } from 'node:fs/promises';
+import { fileURLToPath } from 'node:url';
+import { openApiDocument } from './openapi.ts';
 
-const doc = {
-  info: { title: 'Review Kantin API', version: '1.0.0' },
-  servers: [{ url: 'http://localhost:3000' }],
-  definitions: {
-    StallInput: {
-      type: 'object',
-      required: ['ownerId', 'name'],
-      properties: {
-        ownerId: { type: 'integer', example: 2 },
-        name: { type: 'string', example: 'Warung Baru' },
-        category: { type: 'string', example: 'Nasi' },
-        location: { type: 'string', example: 'Kantin FK' },
-        description: { type: 'string' },
-      },
-    },
-  },
-};
+const outputFile = fileURLToPath(new URL('./swagger-output.json', import.meta.url));
 
-const outputFile = './swagger-output.json';
-const endpointsFiles = ['./src/index.ts'];
+async function main() {
+	await writeFile(outputFile, `${JSON.stringify(openApiDocument, null, 2)}\n`, 'utf8');
+	console.log(`Dokumentasi OpenAPI berhasil dibuat: ${outputFile}`);
+}
 
-swaggerAutogen()(outputFile, endpointsFiles, doc);
+void main();

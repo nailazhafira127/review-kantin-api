@@ -77,7 +77,9 @@ export const createStallSchema = z
   .strict();
 
 // Semua kolom opsional untuk PUT (update sebagian).
-export const updateStallSchema = createStallSchema.partial();
+export const updateStallSchema = createStallSchema
+  .partial()
+  .refine((input) => Object.keys(input).length > 0, 'Minimal satu kolom harus diubah');
 
 // ------------------------------------------------------------------ types
 export type IdParam = z.infer<typeof idParamSchema>;

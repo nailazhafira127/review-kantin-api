@@ -204,7 +204,7 @@ Satu file berisi schema untuk **params, query, dan body**. Perhatikan pola-pola 
   (bukan sekadar validasi, melainkan konversi).
 - `.default(1)` — nilai dipakai bila client tidak mengirim (halaman default 1).
 - `.trim()` — sanitasi whitespace di awal/akhir.
-- `.strict()` — **membuang kunci yang tidak dikenal** dari body (anti payload asing).
+- `.strict()` — **menolak kunci yang tidak dikenal** di body agar payload asing tidak diterima.
 - `.partial()` — untuk PUT, artinya sebagian kolom saja boleh dikirim.
 - `z.infer` — tipe TypeScript menurun otomatis dari schema; tidak perlu menulis ulang.
 
@@ -254,7 +254,9 @@ export const createStallSchema = z
   })
   .strict();
 
-export const updateStallSchema = createStallSchema.partial();
+export const updateStallSchema = createStallSchema
+  .partial()
+  .refine((input) => Object.keys(input).length > 0, 'Minimal satu kolom harus diubah');
 
 export type IdParam = z.infer<typeof idParamSchema>;
 export type StallQuery = z.infer<typeof stallQuerySchema>;
@@ -262,7 +264,8 @@ export type CreateStallInput = z.infer<typeof createStallSchema>;
 export type UpdateStallInput = z.infer<typeof updateStallSchema>;
 ```
 
-Berkat `z.infer`, tipe `CreateStallInput`/`UpdateStallInput` yang dipakai service & controller
+Berkat `.partial()`, PUT boleh mengirim sebagian kolom, tetapi body kosong ditolak karena
+tidak ada perubahan yang bisa diterapkan. Berkat `z.infer`, tipe `CreateStallInput`/`UpdateStallInput` yang dipakai service & controller
 **selalu selaras** dengan schema. Ubah schema → tipe ikut berubah; TypeScript langsung
 menegur bila kode lain belum menyesuaikan.
 

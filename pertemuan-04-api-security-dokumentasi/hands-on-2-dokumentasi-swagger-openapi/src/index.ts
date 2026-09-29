@@ -3,6 +3,12 @@ import { sql } from 'drizzle-orm';
 import swaggerUi from 'swagger-ui-express';
 import { getDb } from './db/index.ts';
 import { stallRouter } from './routes/stallRouter.ts';
+import { userRouter } from './routes/userRouter.ts';
+import { menuItemRouter } from './routes/menuItemRouter.ts';
+import { reviewRouter } from './routes/reviewRouter.ts';
+import { likeRouter } from './routes/likeRouter.ts';
+import { flagRouter } from './routes/flagRouter.ts';
+import { auditLogRouter } from './routes/auditLogRouter.ts';
 import { notFoundHandler } from './middlewares/notFound.ts';
 import { errorHandler } from './middlewares/errorHandler.ts';
 import { openApiDocument } from './docs/openapi.ts';
@@ -30,6 +36,12 @@ app.get('/health', async (_req, res) => {
 });
 
 app.use('/api/v1/stalls', stallRouter);
+app.use('/api/v1/users', userRouter);
+app.use('/api/v1/menu-items', menuItemRouter);
+app.use('/api/v1/reviews', reviewRouter);
+app.use('/api/v1/likes', likeRouter);
+app.use('/api/v1/flags', flagRouter);
+app.use('/api/v1/audit-logs', auditLogRouter);
 
 // 404 untuk rute yang tidak dikenal, lalu error handling terpusat (paling akhir).
 app.use(notFoundHandler);

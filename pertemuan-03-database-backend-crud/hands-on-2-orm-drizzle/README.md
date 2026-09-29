@@ -256,49 +256,28 @@ curl.exe "http://localhost:3000/api/v1/stalls?category=Minuman&limit=2&page=1"
 
 ## Dokumentasi API (Swagger UI)
 
-Dokumentasi dibangun dengan **`swagger-autogen`**: ia memindai file route/entry,
-mendeteksi **path + method secara otomatis**, sedangkan parameter & response ditambahkan
-lewat komentar singkat `#swagger.*` di dalam handler. Hasilnya disajikan lewat
-**`swagger-ui-express`** di `http://localhost:3000/docs`.
+Dokumentasi **OpenAPI 3.0** dibangun dari schema Zod dengan
+`@asteasolutions/zod-to-openapi` dan disajikan lewat **`swagger-ui-express`** di
+`http://localhost:3000/docs`.
 
 Alur:
 
-1. `npm run docs:gen` — memindai `src/index.ts` (beserta router yang diimpor) dan
-   menghasilkan `src/docs/swagger-output.json`.
+1. `npm run docs:gen` — menghasilkan `src/docs/swagger-output.json` dari
+  `src/docs/openapi.ts`.
 2. `npm run dev` — menyajikan spec tersebut di `/docs`.
    (`predev`/`prestart` otomatis menjalankan `docs:gen` sebelum server start.)
 
-Karena `#swagger.*` harus berada di dalam body handler, route ditulis sebagai handler
-**inline** yang memanggil controller, mis.:
-
-```ts
-stallRouter.get('/', (req, res) => {
-  // #swagger.parameters['search']   = { in: 'query', type: 'string' }
-  // #swagger.parameters['category'] = { in: 'query', type: 'string' }
-  // #swagger.parameters['page']     = { in: 'query', type: 'integer' }
-  // #swagger.parameters['limit']    = { in: 'query', type: 'integer' }
-  // #swagger.responses[200] = { description: 'Daftar warung' }
-  return stallController.getStalls(req, res);
-});
-
-stallRouter.post('/', (req, res) => {
-  // #swagger.parameters['body'] = { in: 'body', required: true, schema: { $ref: '#/definitions/StallInput' } }
-  // #swagger.responses[201] = { description: 'Warung dibuat' }
-  return stallController.createStall(req, res);
-});
-```
-
 File terkait:
 
-- `src/docs/swagger.ts` — definisi `info`, `servers`, `definitions.StallInput`, lalu `swaggerAutogen()(outputFile, endpointsFiles, doc)`.
+- `src/docs/swagger.ts` — generator file JSON dari dokumen OpenAPI.
+- `src/docs/openapi.ts` — definisi schema dan endpoint OpenAPI.
 - `src/docs/swagger-output.json` — **hasil generate** (di-`.gitignore`, jangan diedit manual).
-- `src/routes/stallRouter.ts` — handler inline + `#swagger.parameters`/`#swagger.responses`.
+- `src/routes/stallRouter.ts` — route API yang diimplementasikan.
 - `src/index.ts` — `app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));`
 
 Buka `/docs`, lalu klik **Try it out** untuk mengisi parameter/body dan mengirim request.
 
-> Spec yang dihasilkan berformat **Swagger 2.0** — karena itu schema dirujuk lewat
-> `#/definitions/...` (bukan `#/components/schemas/...`).
+> Spec yang dihasilkan berformat **OpenAPI 3.0**.
 
 ---
 
@@ -327,7 +306,8 @@ hands-on-2-orm-drizzle/
    │  ├─ schema.ts            # pemetaan tabel (manual)
    │  └─ index.ts            # koneksi Drizzle
    ├─ docs/
-   │  ├─ swagger.ts           # generator spec (swagger-autogen)
+  │  ├─ swagger.ts           # generator file spec
+  │  ├─ openapi.ts           # definisi dokumen OpenAPI 3.0
    │  └─ swagger-output.json  # hasil generate (gitignored)
    ├─ dtos/stallDto.ts
    ├─ repositories/
